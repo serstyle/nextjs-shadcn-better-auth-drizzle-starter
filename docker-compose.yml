@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres-dev
+    environment:
+      POSTGRES_USER: francois
+      POSTGRES_PASSWORD: francois
+      POSTGRES_DB: francois
+    ports:
+      - "1234:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+# docker compose up -d
+# docker compose down
