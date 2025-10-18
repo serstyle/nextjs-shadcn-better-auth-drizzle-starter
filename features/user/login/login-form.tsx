@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { validateEmail } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -29,6 +31,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResetPasswordLoading, setIsResetPasswordLoading] = useState(false);
   const router = useRouter();
 
   const signin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -59,6 +62,37 @@ export function LoginForm({
       callbackURL: "/dashboard",
     });
   };
+
+  const resetPassword = useCallback(async () => {
+    const isValidEmail = validateEmail(email);
+    setIsResetPasswordLoading(true);
+    if (!isValidEmail) {
+      toast.error("Please enter a valid email", {
+        dismissible: true,
+      });
+      setIsResetPasswordLoading(false);
+      return;
+    }
+    await authClient.requestPasswordReset(
+      {
+        email,
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Password reset email sent", {
+            dismissible: true,
+          });
+        },
+        onError: ({ error }) => {
+          toast.error(error.message, {
+            dismissible: true,
+          });
+        },
+      },
+    );
+    setIsResetPasswordLoading(false);
+  }, [email]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -103,12 +137,23 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+
+                  <Button
+                    disabled={isResetPasswordLoading}
+                    type="button"
+                    variant="link"
+                    className="ml-auto"
+                    onClick={resetPassword}
                   >
-                    Forgot your password?
-                  </a>
+                    {isResetPasswordLoading ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" /> Resetting
+                        password...
+                      </>
+                    ) : (
+                      "Forgot your password?"
+                    )}
+                  </Button>
                 </div>
                 <Input
                   id="password"
