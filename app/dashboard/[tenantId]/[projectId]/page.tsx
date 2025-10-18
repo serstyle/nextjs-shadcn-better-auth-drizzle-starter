@@ -6,11 +6,30 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
+import {
+  getMembersByTenantId,
+  getTenantByIdWithProjects,
+} from "@/features/tenant/db/queries";
 import { Separator } from "@/components/ui/separator";
 import { redirect } from "next/navigation";
+import {
+  FolderIcon,
+  FileTextIcon,
+  ActivityIcon,
+  UsersIcon,
+  CalendarIcon,
+  SettingsIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function Page({
   params,
@@ -19,12 +38,16 @@ export default async function Page({
 }) {
   const { tenantId, projectId } = await params;
 
-  const tenant = await getTenantByIdWithProjects(tenantId);
+  const [tenant, members] = await Promise.all([
+    getTenantByIdWithProjects(tenantId),
+    getMembersByTenantId(tenantId),
+  ]);
 
-  const project = tenant.projects.find((project) => project.id === projectId);
+  const project = tenant.projects.find((p) => p.id === projectId);
   if (!project) {
-    return redirect("/dashboard");
+    redirect(`/dashboard/${tenantId}`);
   }
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -49,13 +72,159 @@ export default async function Page({
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <Card key={project.id} className="rounded-xl bg-muted/50 p-4">
+      <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
+        {/* Project Hero Section */}
+        <div className="space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <FolderIcon className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {project.name}
+              </h1>
+              {project.description && (
+                <p className="text-lg text-muted-foreground">
+                  {project.description}
+                </p>
+              )}
+            </div>
+            <Button variant="outline" size="sm">
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
+              <FileTextIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">No tasks yet</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Team Members
+              </CardTitle>
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{members.length}</div>
+              <p className="text-xs text-muted-foreground">team members</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Activity</CardTitle>
+              <ActivityIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">Recent updates</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Created</CardTitle>
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Date(project.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {new Date(project.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                })}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions / Features */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="border-dashed">
+            <CardHeader>
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <FileTextIcon className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle>Tasks</CardTitle>
+              <CardDescription>
+                Create and manage tasks for this project
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" disabled size="sm" className="w-full">
+                Add First Task (Coming Soon)
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-dashed">
+            <CardHeader>
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <UsersIcon className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle>Team</CardTitle>
+              <CardDescription>
+                Collaborate with your team members
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="secondary" size="sm" className="w-full">
+                <Link href={`/dashboard/${tenantId}/settings/team`}>
+                  Invite Members
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-dashed">
+            <CardHeader>
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <ActivityIcon className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle>Activity Feed</CardTitle>
+              <CardDescription>
+                Track project updates and changes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" disabled size="sm" className="w-full">
+                View Activity (Coming Soon)
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity Card */}
+        <Card>
           <CardHeader>
-            <CardTitle>{project.name}</CardTitle>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>
+              Latest updates and changes in this project
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>{project.description}</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                <ActivityIcon className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">No activity yet</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Start working on tasks to see activity here
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>

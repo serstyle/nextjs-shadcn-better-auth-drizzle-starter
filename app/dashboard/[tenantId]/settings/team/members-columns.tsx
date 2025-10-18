@@ -13,6 +13,7 @@ import {
 import { removeMemberAction } from "@/features/tenant/action";
 import { startTransition, useActionState, useEffect } from "react";
 import { toast } from "sonner";
+import { useRemoveMember } from "@/features/tenant/hooks";
 
 export type Member = {
   tenantId: string;
@@ -46,24 +47,6 @@ export const columns: ColumnDef<Member>[] = [
     },
   },
 ];
-
-export const useRemoveMember = (tenantId: string, memberId: string) => {
-  const [state, formAction, pending] = useActionState(
-    () => removeMemberAction(tenantId, memberId),
-    {
-      error: "",
-    },
-  );
-  useEffect(() => {
-    if (state.error && !pending) {
-      toast.error(state.error);
-    }
-    if (state.success && !pending) {
-      toast.success("Member removed successfully");
-    }
-  }, [state.error, state.success, pending]);
-  return { formAction, pending, state };
-};
 
 export const MemberActions = ({ member }: { member: Member }) => {
   const { formAction, pending } = useRemoveMember(

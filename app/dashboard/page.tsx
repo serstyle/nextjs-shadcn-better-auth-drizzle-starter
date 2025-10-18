@@ -13,11 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CreateTenantForm } from "@/features/tenant/create-tenant";
+import { hasTenant } from "@/features/tenant/db/queries";
 import { SignoutButton } from "@/features/user/signout-button";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { tenantsUsers } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import {
   BuildingIcon,
   FolderIcon,
@@ -31,16 +29,11 @@ export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-
   if (!session) {
     return redirect("/login");
   }
-  const tenant = await db.query.tenantsUsers.findFirst({
-    where: eq(tenantsUsers.userId, session.user.id),
-  });
-  if (tenant) {
-    return redirect(`/dashboard/${tenant.tenantId}`);
-  }
+  await hasTenant();
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

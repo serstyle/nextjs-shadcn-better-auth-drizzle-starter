@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { getTenantById } from "@/features/tenant/db/queries";
+import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 
 export default async function Page({
   params,
@@ -16,7 +16,7 @@ export default async function Page({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-  const tenant = await getTenantById(tenantId);
+  const tenant = await getTenantByIdWithProjects(tenantId);
 
   return (
     <>
@@ -44,7 +44,7 @@ export default async function Page({
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Team</BreadcrumbPage>
+                <BreadcrumbPage>Billing</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

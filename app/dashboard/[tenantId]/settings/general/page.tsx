@@ -11,7 +11,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 import { UpdateTenant } from "@/features/tenant/update-tenant";
 import { Separator } from "@/components/ui/separator";
-import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -20,9 +19,7 @@ export default async function Page({
 }) {
   const { tenantId } = await params;
   const tenant = await getTenantByIdWithProjects(tenantId);
-  if (!tenant) {
-    redirect("/dashboard");
-  }
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

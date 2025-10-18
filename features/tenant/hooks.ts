@@ -1,6 +1,6 @@
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
-import { createTenantAction } from "./action";
+import { createTenantAction, removeMemberAction } from "./action";
 
 export const useCreateTenant = () => {
   const [state, formAction, pending] = useActionState(createTenantAction, {
@@ -23,4 +23,22 @@ export const useCreateTenant = () => {
   }, [state.error]);
 
   return { state, formAction, pending };
+};
+
+export const useRemoveMember = (tenantId: string, memberId: string) => {
+  const [state, formAction, pending] = useActionState(
+    () => removeMemberAction(tenantId, memberId),
+    {
+      error: "",
+    },
+  );
+  useEffect(() => {
+    if (state.error && !pending) {
+      toast.error(state.error);
+    }
+    if (state.success && !pending) {
+      toast.success("Member removed successfully");
+    }
+  }, [state.error, state.success, pending]);
+  return { formAction, pending, state };
 };
