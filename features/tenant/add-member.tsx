@@ -22,7 +22,7 @@ export function AddMember({
   tenantId: string;
 }) {
   const [state, formAction, pending] = useActionState(
-    (prevState: any, formData: FormData) =>
+    (prevState: { error: object | string }, formData: FormData) =>
       addMemberAction(prevState, formData, tenantId),
     {
       error: "",

@@ -124,7 +124,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   </Button>
                   {state.error && typeof state.error === "object" && (
                     <FieldDescription className="text-destructive">
-                      {Object.values(state.error).map((error: any) =>
+                      {Object.values(state.error).map((error: string[]) =>
                         error.join(", "),
                       )}
                     </FieldDescription>

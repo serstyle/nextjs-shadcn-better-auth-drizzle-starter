@@ -27,7 +27,7 @@ const schema = z.object({
 });
 
 export const createTenantAction = async (
-  prevState: any,
+  _prevState: { error: object | string },
   formData: FormData,
 ) => {
   const validatedFields = schema.safeParse({
@@ -71,7 +71,7 @@ export const createTenantAction = async (
 };
 
 export const updateTenantAction = async (
-  prevState: any,
+  _prevState: { error: object | string },
   formData: FormData,
   tenantId: string,
 ) => {
@@ -114,22 +114,25 @@ export const updateTenantAction = async (
   return { success: true, error: "" };
 };
 
-
 export const addMemberAction = async (
-  prevState: any,
+  _prevState: { error: object | string },
   formData: FormData,
   tenantId: string,
 ) => {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  const validatedFields = z.object({
-    memberEmail: z.string({
-      error: "Invalid Member Email",
-    }).min(1, {
-      message: "Member Email is required",
-    }),
-  }).safeParse({
-    memberEmail: formData.get("memberEmail"),
-  });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const validatedFields = z
+    .object({
+      memberEmail: z
+        .string({
+          error: "Invalid Member Email",
+        })
+        .min(1, {
+          message: "Member Email is required",
+        }),
+    })
+    .safeParse({
+      memberEmail: formData.get("memberEmail"),
+    });
   if (!validatedFields.success) {
     return { error: validatedFields.error.flatten().fieldErrors };
   }
@@ -172,14 +175,13 @@ export const addMemberAction = async (
     return { error: "Something went wrong" };
   }
   return { success: true, error: "" };
-}
+};
 
 export const removeMemberAction = async (
   tenantId: string,
   memberId: string,
 ) => {
-await new Promise(resolve => setTimeout(resolve, 1000));
-
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -201,10 +203,14 @@ await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   try {
-    await db.delete(tenantsUsers).where(and(
-      eq(tenantsUsers.tenantId, tenantId),
-      eq(tenantsUsers.userId, memberId),
-    ));
+    await db
+      .delete(tenantsUsers)
+      .where(
+        and(
+          eq(tenantsUsers.tenantId, tenantId),
+          eq(tenantsUsers.userId, memberId),
+        ),
+      );
     revalidatePath(`/dashboard/${tenantId}`);
   } catch (error) {
     if (error instanceof Error) {
@@ -212,4 +218,4 @@ await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
   return { success: true, error: "" };
-}
+};

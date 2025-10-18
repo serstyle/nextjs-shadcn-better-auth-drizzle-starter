@@ -21,7 +21,7 @@ export function UpdateTenant({
   tenant: InferSelectModel<typeof tenants>;
 }) {
   const [state, formAction, pending] = useActionState(
-    (prevState: any, formData: FormData) =>
+    (prevState: { error: object | string }, formData: FormData) =>
       updateTenantAction(prevState, formData, tenant.id),
     {
       error: "",

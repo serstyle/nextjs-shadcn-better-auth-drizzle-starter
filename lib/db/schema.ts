@@ -1,5 +1,12 @@
-import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, uuid, uniqueIndex } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  uuid,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -81,22 +88,26 @@ export const tenantsRelations = relations(tenants, ({ many }) => ({
   projects: many(projects),
 }));
 
-export const tenantsUsers = pgTable("tenants_users", {
-  id: uuid("id").defaultRandom().primaryKey().notNull(),
-  tenantId: uuid("tenant_id")
-    .notNull()
-    .references(() => tenants.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-}, (table) => [
-  uniqueIndex("tenant_user_unique").on(table.tenantId, table.userId),
-]);
+export const tenantsUsers = pgTable(
+  "tenants_users",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("tenant_user_unique").on(table.tenantId, table.userId),
+  ],
+);
 
 export const tenantsUsersRelations = relations(tenantsUsers, ({ one }) => ({
   tenant: one(tenants, {

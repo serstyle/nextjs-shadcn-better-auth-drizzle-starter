@@ -10,9 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { removeMemberAction } from "@/features/tenant/action";
-import { startTransition, useActionState, useEffect } from "react";
-import { toast } from "sonner";
+import { startTransition } from "react";
 import { useRemoveMember } from "@/features/tenant/hooks";
 
 export type Member = {

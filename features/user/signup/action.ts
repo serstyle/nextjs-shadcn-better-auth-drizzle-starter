@@ -18,7 +18,10 @@ const schema = z.object({
   }),
 });
 
-const signupAction = async (prevState: any, formData: FormData) => {
+const signupAction = async (
+  _prevState: { error: object | string },
+  formData: FormData,
+) => {
   const validatedFields = schema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
