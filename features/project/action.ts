@@ -58,7 +58,6 @@ export const createProjectAction = async (
       .insert(projects)
       .values(validatedFields.data)
       .returning();
-    revalidatePath(`/dashboard/${validatedFields.data.tenantId}`);
   } catch (error) {
     if (error instanceof Error) {
       return { error: error.message };

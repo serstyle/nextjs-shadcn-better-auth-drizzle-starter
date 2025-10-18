@@ -53,13 +53,33 @@ export function NavProjects({
         {projects.map((item) => (
           <NavProjectsItem key={item.id} project={item} />
         ))}
+        {projects.length === 0 && (
+          <SidebarMenuItem>
+            <SidebarMenuButton className="text-sidebar-foreground/70">
+              <span className="text-sm text-muted-foreground italic">
+                No projects yet.
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
         <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <Link className="w-full" href={`/dashboard/${activeTenantId}`}>
-              <span>More</span>
-            </Link>
-          </SidebarMenuButton>
+          {projects.length <= 3 ? (
+            <SidebarMenuButton className="text-sidebar-foreground/70">
+              <CreateProject tenantId={activeTenantId}>
+                <div className="flex items-center gap-2">
+                  <Plus className="size-4 cursor-pointer" />
+                  <span>Create Project</span>
+                </div>
+              </CreateProject>
+            </SidebarMenuButton>
+          ) : (
+            <SidebarMenuButton className="text-sidebar-foreground/70">
+              <MoreHorizontal className="text-sidebar-foreground/70" />
+              <Link className="w-full" href={`/dashboard/${activeTenantId}`}>
+                <span>More</span>
+              </Link>
+            </SidebarMenuButton>
+          )}
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
