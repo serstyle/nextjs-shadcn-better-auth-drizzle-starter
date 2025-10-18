@@ -30,8 +30,11 @@ docker compose up -d
 BETTER_AUTH_SECRET=  # Generate a random secret token
 BETTER_AUTH_URL=http://localhost:4000  # Base URL of your app
 
-GOOGLE_CLIENT_ID= 
+GOOGLE_CLIENT_ID= # App won't crash but user won't be able to connect to google
 GOOGLE_CLIENT_SECRET=
+
+RESEND_API_KEY= # If you use Resend, app won't crash without it but user won't be able to reset their password
+RESEND_FROM_EMAIL=
 ```
 
 ## Database Migration

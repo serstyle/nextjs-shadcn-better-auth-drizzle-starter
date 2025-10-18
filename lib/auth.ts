@@ -11,13 +11,15 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, url }) => {
-      await sendEmail({
-        to: user.email,
-        subject: "Reset your password",
-        text: `Click the link to reset your password: ${url}`,
-      });
-    },
+    sendResetPassword: process.env.RESEND_API_KEY
+      ? async ({ user, url }) => {
+          await sendEmail({
+            to: user.email,
+            subject: "Reset your password",
+            text: `Click the link to reset your password: ${url}`,
+          });
+        }
+      : undefined,
     onPasswordReset: async ({ user }) => {
       // Additionally, you can provide an onPasswordReset callback to execute logic after a password has been successfully reset.
       console.log(`Password for user ${user.email} has been reset.`);
