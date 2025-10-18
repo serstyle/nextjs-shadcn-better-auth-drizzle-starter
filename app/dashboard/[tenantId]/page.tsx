@@ -2,17 +2,14 @@ import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { CreateProject } from "@/features/project/create-project";
 import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
-import { Separator } from "@radix-ui/react-separator";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { Separator } from "@/components/ui/separator";
+import { DataTable } from "@/components/data-table";
+import { columns } from "@/features/project/projects-columns";
 
 export default async function Page({
   params,
@@ -21,9 +18,7 @@ export default async function Page({
 }) {
   const { tenantId } = await params;
   const tenant = await getTenantByIdWithProjects(tenantId);
-  if (!tenant) {
-    redirect("/dashboard");
-  }
+
   const projects = tenant.projects;
   return (
     <>
@@ -36,12 +31,6 @@ export default async function Page({
           />
           <Breadcrumb>
             <BreadcrumbList>
-              {/* <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
-                </BreadcrumbLink>
-              </BreadcrumbItem> 
-              <BreadcrumbSeparator className="hidden md:block" />*/}
               <BreadcrumbItem>
                 <BreadcrumbPage>{tenant.name}</BreadcrumbPage>
               </BreadcrumbItem>
@@ -50,18 +39,8 @@ export default async function Page({
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        {projects.map((project) => (
-          <Card key={project.id} className="rounded-xl bg-muted/50 p-4">
-            <Link href={`/dashboard/${tenantId}/${project.id}`}>
-              <CardHeader>
-                <CardTitle>{project.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{project.description}</p>
-              </CardContent>
-            </Link>
-          </Card>
-        ))}
+        <DataTable columns={columns} data={projects} />
+
         <CreateProject tenantId={tenantId} />
       </div>
     </>

@@ -47,11 +47,6 @@ export default async function Layout({
   return (
     <SidebarProvider>
       <AppSidebar
-        user={{
-          name: session?.user?.name || "",
-          email: session?.user?.email || "",
-          avatar: session?.user?.image || "",
-        }}
         projects={activeTenant.projects}
         tenants={tenants}
         activeTenant={activeTenant}

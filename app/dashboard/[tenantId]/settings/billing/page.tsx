@@ -8,13 +8,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { columns } from "./members-columns";
-import { DataTable } from "@/components/data-table";
-import {
-  getMembersByTenantId,
-  getTenantByIdWithProjects,
-} from "@/features/tenant/db/queries";
-import { AddMember } from "@/features/tenant/add-member";
+import { getTenantById } from "@/features/tenant/db/queries";
 
 export default async function Page({
   params,
@@ -22,11 +16,7 @@ export default async function Page({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-
-  const [tenant, members] = await Promise.all([
-    getTenantByIdWithProjects(tenantId),
-    getMembersByTenantId(tenantId),
-  ]);
+  const tenant = await getTenantById(tenantId);
 
   return (
     <>
@@ -61,8 +51,7 @@ export default async function Page({
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <DataTable columns={columns} data={members} />
-        <AddMember tenantId={tenantId} />
+        <h1>Billing</h1>
       </div>
     </>
   );

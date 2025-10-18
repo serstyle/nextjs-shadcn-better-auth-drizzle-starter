@@ -10,7 +10,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 import { UpdateTenant } from "@/features/tenant/update-tenant";
-import { Separator } from "@radix-ui/react-separator";
+import { Separator } from "@/components/ui/separator";
 import { redirect } from "next/navigation";
 
 export default async function Page({

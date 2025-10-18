@@ -29,6 +29,9 @@ docker compose up -d
 ```env
 BETTER_AUTH_SECRET=  # Generate a random secret token
 BETTER_AUTH_URL=http://localhost:4000  # Base URL of your app
+
+GOOGLE_CLIENT_ID= 
+GOOGLE_CLIENT_SECRET=
 ```
 
 ## Database Migration

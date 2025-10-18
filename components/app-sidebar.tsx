@@ -18,22 +18,14 @@ import { projects, tenants } from "@/lib/db/schema";
 import { NavMain } from "./nav-main";
 import { usePathname } from "next/navigation";
 
-type User = {
-  name: string;
-  email: string;
-  avatar: string;
-};
-
 type Tenant = InferSelectModel<typeof tenants>;
 type Project = InferSelectModel<typeof projects>;
 export function AppSidebar({
-  user,
   tenants,
   activeTenant,
   projects,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  user: User;
   tenants: Tenant[];
   activeTenant: Tenant;
   projects: Project[];
@@ -69,15 +61,14 @@ export function AppSidebar({
         },
         {
           title: "Team",
-          url: "#",
+          url: `/dashboard/${activeTenant.id}/settings/team`,
+          isActive: pathname === `/dashboard/${activeTenant.id}/settings/team`,
         },
         {
           title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          url: `/dashboard/${activeTenant.id}/settings/billing`,
+          isActive:
+            pathname === `/dashboard/${activeTenant.id}/settings/billing`,
         },
       ],
     },
@@ -93,7 +84,7 @@ export function AppSidebar({
         <NavProjects projects={projects} activeTenantId={activeTenant.id} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser activeTenantId={activeTenant.id} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

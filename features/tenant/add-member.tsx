@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createTenantAction } from "./action";
+import { addMemberAction } from "./action";
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -14,13 +14,23 @@ import {
 import { Label } from "@/components/ui/label";
 import { DialogFormWithTrigger } from "@/components/dialog-form-with-trigger";
 
-export function CreateTenant({ children }: { children?: React.ReactNode }) {
-  const [state, formAction, pending] = useActionState(createTenantAction, {
-    error: "",
-  });
+export function AddMember({
+  children,
+  tenantId,
+}: {
+  children?: React.ReactNode;
+  tenantId: string;
+}) {
+  const [state, formAction, pending] = useActionState(
+    (prevState: any, formData: FormData) =>
+      addMemberAction(prevState, formData, tenantId),
+    {
+      error: "",
+    },
+  );
 
   useEffect(() => {
-    if (state.error) {
+    if (state.error && !pending) {
       let errorMessage = JSON.stringify(state.error);
       if (typeof state.error === "string") {
         errorMessage = state.error;
@@ -32,36 +42,34 @@ export function CreateTenant({ children }: { children?: React.ReactNode }) {
       }
       toast.error(errorMessage);
     }
-  }, [state.error]);
+    if (state.success && !pending) {
+      toast.success("Member added successfully");
+    }
+  }, [state.error, state.success, pending]);
 
   return (
     <DialogFormWithTrigger
       formAction={formAction}
-      trigger={
-        children || <Button variant="outline">Create a new tenant</Button>
-      }
+      trigger={children || <Button variant="outline">Add a new member</Button>}
     >
       <DialogHeader>
-        <DialogTitle>Create a new tenant</DialogTitle>
-        <DialogDescription>Create a new tenant</DialogDescription>
+        <DialogTitle>Add a new member</DialogTitle>
+        <DialogDescription>Add a new member to the tenant</DialogDescription>
       </DialogHeader>
       <>
         <div className="grid gap-3">
-          <Label htmlFor="name-1">Name</Label>
-          <Input id="name-1" name="name" />
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="description-1">Description</Label>
-          <Input id="description-1" name="description" />
+          <Label htmlFor="name-1">Member Email</Label>
+          <Input id="name-1" name="memberEmail" />
         </div>
       </>
-
       <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="outline">Cancel</Button>
+        <DialogClose disabled={pending} asChild>
+          <Button disabled={pending} variant="outline">
+            Cancel
+          </Button>
         </DialogClose>
         <Button type="submit" disabled={pending}>
-          {pending ? "Creating tenant..." : "Create Tenant"}
+          {pending ? "Adding member..." : "Add Member"}
         </Button>
       </DialogFooter>
     </DialogFormWithTrigger>

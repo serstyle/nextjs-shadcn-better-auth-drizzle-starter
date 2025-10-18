@@ -9,11 +9,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
-import { auth } from "@/lib/auth";
-import { projects } from "@/lib/db/schema";
-import { Separator } from "@radix-ui/react-separator";
-import Link from "next/link";
-import { headers } from "next/headers";
+import { Separator } from "@/components/ui/separator";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -22,17 +18,9 @@ export default async function Page({
   params: Promise<{ tenantId: string; projectId: string }>;
 }) {
   const { tenantId, projectId } = await params;
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
 
-  if (!session) {
-    return redirect("/login");
-  }
   const tenant = await getTenantByIdWithProjects(tenantId);
-  if (!tenant) {
-    return redirect("/dashboard");
-  }
+
   const project = tenant.projects.find((project) => project.id === projectId);
   if (!project) {
     return redirect("/dashboard");

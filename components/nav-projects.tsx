@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { Folder, Loader2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
@@ -21,12 +22,11 @@ import {
 import { projects } from "@/lib/db/schema";
 import { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { deleteProjectAction } from "@/features/project/action";
-import { startTransition, useActionState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { startTransition } from "react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { CreateProject } from "@/features/project/create-project";
+import { useRemoveProject } from "@/features/project/hooks";
 
 type Project = InferSelectModel<typeof projects>;
 
@@ -39,14 +39,16 @@ export function NavProjects({
 }) {
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel className="flex items-center justify-between">
+      <SidebarGroupLabel className="">
         <span>
           Projects {projects.length > 0 ? `(${projects.length})` : ""}
         </span>
+      </SidebarGroupLabel>
+      <SidebarGroupAction>
         <CreateProject tenantId={activeTenantId}>
           <Plus className="size-4 cursor-pointer" />
         </CreateProject>
-      </SidebarGroupLabel>
+      </SidebarGroupAction>
       <SidebarMenu>
         {projects.map((item) => (
           <NavProjectsItem key={item.id} project={item} />
@@ -54,7 +56,9 @@ export function NavProjects({
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
+            <Link className="w-full" href={`/dashboard/${activeTenantId}`}>
+              <span>More</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -66,23 +70,11 @@ export function NavProjectsItem({ project }: { project: Project }) {
   const { isMobile } = useSidebar();
   const pathname = usePathname();
   const projectId = pathname.split("/").pop();
-  const router = useRouter();
-  const [state, formAction, pending] = useActionState(
-    () => deleteProjectAction(project.tenantId, project.id),
-    {
-      error: "",
-    },
-  );
 
-  useEffect(() => {
-    if (state.error) {
-      toast.error(state.error);
-    }
-    if (state.success) {
-      toast.success("Project deleted successfully");
-      router.refresh();
-    }
-  }, [router, state.error, state.success]);
+  const { formAction, pending } = useRemoveProject(
+    project.tenantId,
+    project.id,
+  );
 
   return (
     <SidebarMenuItem key={project.name}>
@@ -101,8 +93,12 @@ export function NavProjectsItem({ project }: { project: Project }) {
           disabled={pending}
           className={cn(pending && "animate-pulse cursor-not-allowed")}
         >
-          <SidebarMenuAction showOnHover>
-            <MoreHorizontal />
+          <SidebarMenuAction showOnHover={!pending}>
+            {pending ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <MoreHorizontal />
+            )}
             <span className="sr-only">More</span>
           </SidebarMenuAction>
         </DropdownMenuTrigger>
@@ -119,14 +115,12 @@ export function NavProjectsItem({ project }: { project: Project }) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            className="text-destructive"
             onClick={() => startTransition(formAction)}
             disabled={pending}
           >
             <Trash2
-              className={cn(
-                "text-muted-foreground",
-                pending && "animate-pulse",
-              )}
+              className={cn("text-destructive", pending && "animate-pulse")}
             />
             <span>Delete Project</span>
           </DropdownMenuItem>

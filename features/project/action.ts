@@ -22,7 +22,7 @@ const schema = z.object({
 });
 
 export const createProjectAction = async (
-  prevState: any,
+  _prevState: { error: string | object },
   formData: FormData,
 ) => {
   const validatedFields = schema.safeParse({
@@ -78,21 +78,25 @@ export const deleteProjectAction = async (
   if (!session) {
     return { error: "Unauthorized" };
   }
-  const userInTenant = await db.query.tenantsUsers.findFirst({
-    where: and(
-      eq(tenantsUsers.userId, session.user.id),
-      eq(tenantsUsers.tenantId, tenantId),
-    ),
-    with: {
-      tenant: {
-        with: {
-          projects: {
-            where: eq(projects.id, projectId),
+  const userInTenant = await db.query.tenantsUsers
+    .findFirst({
+      where: and(
+        eq(tenantsUsers.userId, session.user.id),
+        eq(tenantsUsers.tenantId, tenantId),
+      ),
+      with: {
+        tenant: {
+          with: {
+            projects: {
+              where: eq(projects.id, projectId),
+            },
           },
         },
       },
-    },
-  });
+    })
+    .catch(() => {
+      return null;
+    });
   if (!userInTenant?.tenant?.projects.length) {
     return { error: "Project not found" };
   }

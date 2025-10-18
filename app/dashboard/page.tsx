@@ -1,4 +1,3 @@
-import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,24 +6,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SignoutButton } from "@/features/user/signout-button";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tenantsUsers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
@@ -68,6 +56,7 @@ export default async function Page() {
         <div className="grid auto-rows-min gap-4 md:grid-cols-3">
           Onboarding
         </div>
+        <SignoutButton />
       </div>
     </>
   );
