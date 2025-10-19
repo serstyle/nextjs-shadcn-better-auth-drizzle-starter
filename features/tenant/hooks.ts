@@ -24,21 +24,3 @@ export const useCreateTenant = () => {
 
   return { state, formAction, pending };
 };
-
-export const useRemoveMember = (tenantId: string, memberId: string) => {
-  const [state, formAction, pending] = useActionState(
-    () => removeMemberAction(tenantId, memberId),
-    {
-      error: "",
-    },
-  );
-  useEffect(() => {
-    if (state.error && !pending) {
-      toast.error(state.error);
-    }
-    if (state.success && !pending) {
-      toast.success("Member removed successfully");
-    }
-  }, [state.error, state.success, pending]);
-  return { formAction, pending, state };
-};

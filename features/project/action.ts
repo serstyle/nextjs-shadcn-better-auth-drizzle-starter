@@ -75,7 +75,7 @@ export const deleteProjectAction = async (
     headers: await headers(),
   });
   if (!session) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
   }
   const userInTenant = await db.query.tenantsUsers
     .findFirst({
@@ -97,16 +97,16 @@ export const deleteProjectAction = async (
       return null;
     });
   if (!userInTenant?.tenant?.projects.length) {
-    return { error: "Project not found" };
+    return { error: true, message: "Project not found" };
   }
   try {
     await db.delete(projects).where(eq(projects.id, projectId));
     revalidatePath(`/dashboard/${tenantId}`);
-    return { success: true, error: "" };
+    return { error: false, message: "Project deleted successfully" };
   } catch (error) {
     if (error instanceof Error) {
-      return { error: error.message };
+      return { error: true, message: error.message };
     }
-    return { error: "An unknown error occurred" };
+    return { error: true, message: "An unknown error occurred" };
   }
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Folder, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { Folder, MoreHorizontal, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { startTransition } from "react";
-import { useRemoveProject } from "@/features/project/hooks";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ActionButton } from "@/components/ui/action-button";
+import { deleteProjectAction } from "./action";
 
 export type Project = {
   tenantId: string;
@@ -54,20 +53,12 @@ export const columns: ColumnDef<Project>[] = [
 ];
 
 export const ProjectActions = ({ project }: { project: Project }) => {
-  const { formAction, pending } = useRemoveProject(
-    project.tenantId,
-    project.id,
-  );
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0" disabled={pending}>
+        <Button variant="ghost" className="h-8 w-8 p-0">
           <span className="sr-only">Open menu</span>
-          {pending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MoreHorizontal className="h-4 w-4" />
-          )}
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -78,15 +69,23 @@ export const ProjectActions = ({ project }: { project: Project }) => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={pending}
-          onClick={() => startTransition(formAction)}
-          className="text-destructive"
-        >
-          <Trash2
-            className={cn("text-destructive", pending && "animate-pulse")}
-          />
-          <span>Delete Project</span>
+        <DropdownMenuItem asChild className="text-destructive">
+          <ActionButton
+            action={deleteProjectAction.bind(
+              null,
+              project.tenantId,
+              project.id,
+            )}
+            requireAreYouSure
+            variant="ghost"
+            className="text-destructive"
+            asChild
+          >
+            <div className="relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive outline-hidden select-none hover:bg-destructive/10 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:!text-destructive">
+              <Trash2 className="text-destructive" />
+              <span>Delete Project</span>
+            </div>
+          </ActionButton>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

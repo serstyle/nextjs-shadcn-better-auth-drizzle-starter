@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, Loader2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { Folder, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -23,10 +23,9 @@ import { projects } from "@/lib/db/schema";
 import { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { startTransition } from "react";
-import { cn } from "@/lib/utils";
 import { CreateProject } from "@/features/project/create-project";
-import { useRemoveProject } from "@/features/project/hooks";
+import { ActionButton } from "./ui/action-button";
+import { deleteProjectAction } from "@/features/project/action";
 
 type Project = InferSelectModel<typeof projects>;
 
@@ -91,34 +90,18 @@ export function NavProjectsItem({ project }: { project: Project }) {
   const pathname = usePathname();
   const projectId = pathname.split("/").pop();
 
-  const { formAction, pending } = useRemoveProject(
-    project.tenantId,
-    project.id,
-  );
-
   return (
     <SidebarMenuItem key={project.name}>
       <SidebarMenuButton isActive={projectId === project.id} asChild>
-        <Link
-          href={pending ? "#" : `/dashboard/${project.tenantId}/${project.id}`}
-          className={cn(pending && "animate-pulse cursor-not-allowed")}
-        >
+        <Link href={`/dashboard/${project.tenantId}/${project.id}`}>
           <Folder className="text-muted-foreground" />
           <span>{project.name}</span>
         </Link>
       </SidebarMenuButton>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          asChild
-          disabled={pending}
-          className={cn(pending && "animate-pulse cursor-not-allowed")}
-        >
-          <SidebarMenuAction showOnHover={!pending}>
-            {pending ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <MoreHorizontal />
-            )}
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction showOnHover>
+            <MoreHorizontal />
             <span className="sr-only">More</span>
           </SidebarMenuAction>
         </DropdownMenuTrigger>
@@ -134,15 +117,23 @@ export function NavProjectsItem({ project }: { project: Project }) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive"
-            onClick={() => startTransition(formAction)}
-            disabled={pending}
-          >
-            <Trash2
-              className={cn("text-destructive", pending && "animate-pulse")}
-            />
-            <span>Delete Project</span>
+          <DropdownMenuItem asChild className="text-destructive">
+            <ActionButton
+              action={deleteProjectAction.bind(
+                null,
+                project.tenantId,
+                project.id,
+              )}
+              requireAreYouSure
+              variant="destructive"
+              className="text-destructive"
+              asChild
+            >
+              <div className="relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive outline-hidden select-none hover:bg-destructive/10 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:!text-destructive">
+                <Trash2 className="text-destructive" />
+                <span>Delete Project</span>
+              </div>
+            </ActionButton>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

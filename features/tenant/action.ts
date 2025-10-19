@@ -188,7 +188,7 @@ export const removeMemberAction = async (
   });
 
   if (!session) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
   }
 
   const userInTenant = await db.query.tenantsUsers.findFirst({
@@ -199,7 +199,7 @@ export const removeMemberAction = async (
   });
 
   if (!userInTenant) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
   }
 
   try {
@@ -214,8 +214,8 @@ export const removeMemberAction = async (
     revalidatePath(`/dashboard/${tenantId}`);
   } catch (error) {
     if (error instanceof Error) {
-      return { error: error.message };
+      return { error: true, message: error.message };
     }
   }
-  return { success: true, error: "" };
+  return { error: false, message: "Member removed successfully" };
 };

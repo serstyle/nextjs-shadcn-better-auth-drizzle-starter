@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Loader2, MoreHorizontal, UserMinus } from "lucide-react";
+import { MoreHorizontal, UserMinus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { startTransition } from "react";
-import { useRemoveMember } from "@/features/tenant/hooks";
+import { ActionButton } from "@/components/ui/action-button";
+import { removeMemberAction } from "@/features/tenant/action";
 
 export type Member = {
   tenantId: string;
@@ -47,29 +47,32 @@ export const columns: ColumnDef<Member>[] = [
 ];
 
 export const MemberActions = ({ member }: { member: Member }) => {
-  const { formAction, pending } = useRemoveMember(
-    member.tenantId,
-    member.memberId,
-  );
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0" disabled={pending}>
+        <Button variant="ghost" className="h-8 w-8 p-0">
           <span className="sr-only">Open menu</span>
-          {pending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MoreHorizontal className="h-4 w-4" />
-          )}
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          className="text-destructive"
-          onClick={() => startTransition(formAction)}
-        >
-          <UserMinus className="text-destructive" />
-          {pending ? "Removing member..." : "Remove member"}
+        <DropdownMenuItem asChild>
+          <ActionButton
+            action={removeMemberAction.bind(
+              null,
+              member.tenantId,
+              member.memberId,
+            )}
+            requireAreYouSure
+            variant="ghost"
+            className="text-destructive"
+            asChild
+          >
+            <div className="relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none hover:bg-destructive/10 focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:!text-destructive">
+              <UserMinus className="text-destructive" />
+              <span className="text-destructive">Remove member</span>
+            </div>
+          </ActionButton>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
