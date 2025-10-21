@@ -4,6 +4,9 @@ import {
   getTenantByIdWithProjects,
   getUserTenants,
 } from "@/features/tenant/db/queries";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
@@ -13,10 +16,15 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const { tenantId } = await params;
-
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    redirect("/login");
+  }
   const [tenants, activeTenant] = await Promise.all([
     getUserTenants(),
-    getTenantByIdWithProjects(tenantId),
+    getTenantByIdWithProjects(tenantId, session.user.id),
   ]);
 
   return (

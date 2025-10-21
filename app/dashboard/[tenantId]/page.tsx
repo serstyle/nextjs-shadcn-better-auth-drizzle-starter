@@ -10,6 +10,9 @@ import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 import { Separator } from "@/components/ui/separator";
 import { DataTable } from "@/components/data-table";
 import { columns } from "@/features/project/projects-columns";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -17,7 +20,13 @@ export default async function Page({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-  const tenant = await getTenantByIdWithProjects(tenantId);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    redirect("/login");
+  }
+  const tenant = await getTenantByIdWithProjects(tenantId, session.user.id);
 
   const projects = tenant.projects;
   return (

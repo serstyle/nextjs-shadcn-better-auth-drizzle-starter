@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 export default async function Page({
   params,
@@ -37,9 +39,14 @@ export default async function Page({
   params: Promise<{ tenantId: string; projectId: string }>;
 }) {
   const { tenantId, projectId } = await params;
-
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    redirect("/login");
+  }
   const [tenant, members] = await Promise.all([
-    getTenantByIdWithProjects(tenantId),
+    getTenantByIdWithProjects(tenantId, session.user.id),
     getMembersByTenantId(tenantId),
   ]);
 

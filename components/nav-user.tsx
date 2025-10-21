@@ -29,6 +29,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { AccountDialog } from "@/features/user/account/account-dialog";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function NavUser({ activeTenantId }: { activeTenantId: string }) {
   const { isMobile } = useSidebar();
@@ -51,7 +52,7 @@ export function NavUser({ activeTenantId }: { activeTenantId: string }) {
   };
 
   if (!user) {
-    return null;
+    return <Skeleton className="h-10 w-full" />;
   }
 
   return (

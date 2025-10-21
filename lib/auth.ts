@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { nextCookies } from "better-auth/next-js";
 import { sendEmail } from "./email";
 
+import { organization } from "better-auth/plugins";
+
 export const auth = betterAuth({
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL!],
   database: drizzleAdapter(db, {
@@ -15,6 +17,7 @@ export const auth = betterAuth({
       maxAge: 60, // Cache duration in seconds
     },
   },
+
   emailAndPassword: {
     enabled: true,
     sendResetPassword: process.env.RESEND_API_KEY
@@ -38,5 +41,5 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), organization()],
 });

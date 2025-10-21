@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tenants, tenantsUsers, user } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { DatabaseError } from "pg";
@@ -105,7 +105,7 @@ export const updateTenantAction = async (
       .update(tenants)
       .set(validatedFields.data)
       .where(eq(tenants.id, tenantId));
-    revalidatePath(`/dashboard/${tenantId}`);
+    updateTag(`tenant:${tenantId}`);
   } catch (error) {
     if (error instanceof Error) {
       return { error: error.message };

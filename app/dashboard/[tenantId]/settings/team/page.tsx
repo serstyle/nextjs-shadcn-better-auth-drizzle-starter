@@ -15,6 +15,9 @@ import {
   getTenantByIdWithProjects,
 } from "@/features/tenant/db/queries";
 import { AddMember } from "@/features/tenant/add-member";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -22,9 +25,14 @@ export default async function Page({
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    redirect("/login");
+  }
   const [tenant, members] = await Promise.all([
-    getTenantByIdWithProjects(tenantId),
+    getTenantByIdWithProjects(tenantId, session.user.id),
     getMembersByTenantId(tenantId),
   ]);
 

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tenantsUsers } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
+import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -11,31 +12,30 @@ import { cache } from "react";
 // When multiple components make the same data fetch, only one request is made
 // and the data returned is cached and shared across components. All components
 // refer to the same snapshot of data across the server render.
-export const getTenantByIdWithProjects = cache(async (tenantId: string) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) {
-    redirect("/login");
-  }
-  const tenantsUsersResult = await db.query.tenantsUsers.findFirst({
-    where: and(
-      eq(tenantsUsers.userId, session?.user?.id),
-      eq(tenantsUsers.tenantId, tenantId),
-    ),
-    with: {
-      tenant: {
-        with: {
-          projects: true,
+export const getTenantByIdWithProjects = cache(
+  async (tenantId: string, userId: string) => {
+    "use cache";
+
+    cacheTag(`tenant:${tenantId}`);
+    const tenantsUsersResult = await db.query.tenantsUsers.findFirst({
+      where: and(
+        eq(tenantsUsers.userId, userId),
+        eq(tenantsUsers.tenantId, tenantId),
+      ),
+      with: {
+        tenant: {
+          with: {
+            projects: true,
+          },
         },
       },
-    },
-  });
-  if (!tenantsUsersResult) {
-    redirect("/dashboard");
-  }
-  return tenantsUsersResult.tenant;
-});
+    });
+    if (!tenantsUsersResult) {
+      redirect("/dashboard");
+    }
+    return tenantsUsersResult.tenant;
+  },
+);
 
 export const getMembersByTenantId = async (tenantId: string) => {
   const session = await auth.api.getSession({

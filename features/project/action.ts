@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { projects, tenantsUsers } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { and } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -58,6 +58,7 @@ export const createProjectAction = async (
       .insert(projects)
       .values(validatedFields.data)
       .returning();
+    updateTag(`tenant:${validatedFields.data.tenantId}`);
   } catch (error) {
     if (error instanceof Error) {
       return { error: error.message };
@@ -101,7 +102,9 @@ export const deleteProjectAction = async (
   }
   try {
     await db.delete(projects).where(eq(projects.id, projectId));
-    revalidatePath(`/dashboard/${tenantId}`);
+
+    updateTag(`tenant:${tenantId}`);
+
     return { error: false, message: "Project deleted successfully" };
   } catch (error) {
     if (error instanceof Error) {
