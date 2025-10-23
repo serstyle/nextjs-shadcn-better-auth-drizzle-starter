@@ -16,7 +16,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { deleteProjectAction } from "./action";
 
 export type Project = {
-  tenantId: string;
+  organizationId: string;
   name: string;
   description: string | null;
   createdAt: Date;
@@ -53,6 +53,9 @@ export const columns: ColumnDef<Project>[] = [
 ];
 
 export const ProjectActions = ({ project }: { project: Project }) => {
+  const handleDeleteProject = () => {
+    return deleteProjectAction(project.organizationId, project.id);
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -63,7 +66,7 @@ export const ProjectActions = ({ project }: { project: Project }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link href={`/dashboard/${project.tenantId}/${project.id}`}>
+          <Link href={`/dashboard/${project.id}`}>
             <Folder className="text-muted-foreground" />
             <span>View Project</span>
           </Link>
@@ -71,11 +74,7 @@ export const ProjectActions = ({ project }: { project: Project }) => {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="text-destructive">
           <ActionButton
-            action={deleteProjectAction.bind(
-              null,
-              project.tenantId,
-              project.id,
-            )}
+            action={handleDeleteProject}
             requireAreYouSure
             variant="ghost"
             className="text-destructive"

@@ -8,24 +8,23 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
-import { auth } from "@/lib/auth";
+import { columns } from "./members-columns";
+import { DataTable } from "@/components/data-table";
+import { AddMember } from "@/features/organization/add-member";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ tenantId: string }>;
-}) {
-  const { tenantId } = await params;
+import { getCurrentOrganization } from "@/features/organization/auth/queries";
+
+export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) {
     redirect("/login");
   }
-  const tenant = await getTenantByIdWithProjects(tenantId, session.user.id);
+  const organization = await getCurrentOrganization();
 
   return (
     <>
@@ -39,28 +38,27 @@ export default async function Page({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/${tenantId}`}>
-                  {tenant.name}
+                <BreadcrumbLink href={`/dashboard`}>
+                  {organization.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  href={`/dashboard/${tenantId}/settings/general`}
-                >
+                <BreadcrumbLink href={`/dashboard/settings/general`}>
                   Settings
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Billing</BreadcrumbPage>
+                <BreadcrumbPage>Team</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <h1>Billing</h1>
+        <DataTable columns={columns} data={organization.members} />
+        <AddMember />
       </div>
     </>
   );

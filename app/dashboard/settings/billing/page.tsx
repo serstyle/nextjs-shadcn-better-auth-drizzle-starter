@@ -2,33 +2,26 @@ import {
   Breadcrumb,
   BreadcrumbList,
   BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { CreateProject } from "@/features/project/create-project";
-import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 import { Separator } from "@/components/ui/separator";
-import { DataTable } from "@/components/data-table";
-import { columns } from "@/features/project/projects-columns";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getCurrentOrganization } from "@/features/organization/auth/queries";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ tenantId: string }>;
-}) {
-  const { tenantId } = await params;
+export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) {
     redirect("/login");
   }
-  const tenant = await getTenantByIdWithProjects(tenantId, session.user.id);
+  const organization = await getCurrentOrganization();
 
-  const projects = tenant.projects;
   return (
     <>
       <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -41,16 +34,26 @@ export default async function Page({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbPage>{tenant.name}</BreadcrumbPage>
+                <BreadcrumbLink href={`/dashboard`}>
+                  {organization.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/dashboard/settings/general`}>
+                  Settings
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Billing</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <DataTable columns={columns} data={projects} />
-
-        <CreateProject tenantId={tenantId} />
+        <h1>Billing</h1>
       </div>
     </>
   );

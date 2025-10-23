@@ -10,24 +10,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ActionButton } from "@/components/ui/action-button";
-import { removeMemberAction } from "@/features/tenant/action";
-
-export type Member = {
-  tenantId: string;
-  memberId: string;
-  name: string;
-  email: string;
-  createdAt: Date;
-};
+import { Member } from "better-auth/plugins";
+import { authClient } from "@/lib/auth-client";
+import { BetterAuthActionButton } from "@/components/auth/better-auth-action-button";
+import { useRouter } from "next/navigation";
 
 export const columns: ColumnDef<Member>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "user.name",
     header: "Name",
   },
   {
-    accessorKey: "email",
+    accessorKey: "user.email",
     header: "Email",
   },
   {
@@ -47,6 +41,19 @@ export const columns: ColumnDef<Member>[] = [
 ];
 
 export const MemberActions = ({ member }: { member: Member }) => {
+  const router = useRouter();
+  const handleRemoveMember = () => {
+    return authClient.organization.removeMember(
+      {
+        memberIdOrEmail: member.id,
+      },
+      {
+        onSuccess: () => {
+          router.refresh();
+        },
+      },
+    );
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -57,12 +64,9 @@ export const MemberActions = ({ member }: { member: Member }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <ActionButton
-            action={removeMemberAction.bind(
-              null,
-              member.tenantId,
-              member.memberId,
-            )}
+          <BetterAuthActionButton
+            action={handleRemoveMember}
+            successMessage="Member removed successfully"
             requireAreYouSure
             variant="ghost"
             className="text-destructive"
@@ -72,7 +76,7 @@ export const MemberActions = ({ member }: { member: Member }) => {
               <UserMinus className="text-destructive" />
               <span className="text-destructive">Remove member</span>
             </div>
-          </ActionButton>
+          </BetterAuthActionButton>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

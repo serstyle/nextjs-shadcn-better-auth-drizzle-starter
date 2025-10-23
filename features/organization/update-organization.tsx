@@ -10,76 +10,82 @@ import {
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useActionState, useEffect } from "react";
-import { updateTenantAction } from "./action";
 import { toast } from "sonner";
-import { InferSelectModel } from "drizzle-orm";
-import { tenants } from "@/lib/db/schema";
+import { Organization } from "better-auth/plugins";
+import { updateOrganizationAction } from "./action";
 
-export function UpdateTenant({
-  tenant,
+export function UpdateOrganization({
+  organization,
 }: {
-  tenant: InferSelectModel<typeof tenants>;
+  organization: Organization;
 }) {
   const [state, formAction, pending] = useActionState(
-    (prevState: { error: object | string }, formData: FormData) =>
-      updateTenantAction(prevState, formData, tenant.id),
+    (
+      prevState: { error: boolean; message: string | object },
+      formData: FormData,
+    ) => updateOrganizationAction(prevState, formData, organization.id),
     {
-      error: "",
+      error: false,
+      message: "",
     },
   );
 
   useEffect(() => {
-    if (state?.success) {
-      toast.success("Tenant updated successfully");
-    }
-    if (state?.error) {
-      if (typeof state.error === "object") {
+    if (state.error) {
+      if (typeof state.message === "object") {
         toast.error(
-          Object.values(state.error).map((error: string[]) => error.join(", ")),
+          Object.values(state.message).map((error: string[]) =>
+            error.join(", "),
+          ),
         );
       } else {
-        toast.error(state.error);
+        toast.error(state.message);
       }
+    }
+    if (!state.error && state.message && typeof state.message === "string") {
+      toast.success(state.message);
     }
   }, [state]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update Tenant</CardTitle>
+        <CardTitle>Update Organization</CardTitle>
         <CardDescription>
-          Enter your information below to update your tenant
+          Enter your information below to update your organization
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onReset={(e) => e.preventDefault()} action={formAction}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="name">Tenant Name</FieldLabel>
+              <FieldLabel htmlFor="name">Organization Name</FieldLabel>
               <Input
                 id="name"
                 type="text"
                 name="name"
                 placeholder="My Company"
-                defaultValue={tenant.name}
+                defaultValue={organization.name}
                 required
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">Tenant Description</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Organization Description
+              </FieldLabel>
               <Input
                 id="description"
                 type="textarea"
                 name="description"
                 placeholder="My Company is a software development company that specializes in building web applications."
-                defaultValue={tenant.description ?? ""}
+                defaultValue={JSON.parse(organization.metadata).description}
                 required
               />
             </Field>
             <FieldGroup>
               <Field>
                 <Button type="submit" disabled={pending}>
-                  {pending ? "Updating tenant..." : "Update Tenant"}
+                  {pending ? "Updating organization..." : "Update Organization"}
                 </Button>
               </Field>
             </FieldGroup>

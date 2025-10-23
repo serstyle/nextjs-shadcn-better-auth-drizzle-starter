@@ -1,11 +1,14 @@
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
-import { createTenantAction, removeMemberAction } from "./action";
+import { createOrganizationAction } from "./action";
 
-export const useCreateTenant = () => {
-  const [state, formAction, pending] = useActionState(createTenantAction, {
-    error: "",
-  });
+export const useCreateOrganization = () => {
+  const [state, formAction, pending] = useActionState(
+    createOrganizationAction,
+    {
+      error: "",
+    },
+  );
 
   useEffect(() => {
     if (state.error) {
