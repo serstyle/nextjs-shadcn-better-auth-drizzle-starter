@@ -1,5 +1,6 @@
 "use server";
 import { auth } from "@/lib/auth";
+import { checkPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { APIError } from "better-auth";
@@ -95,27 +96,15 @@ export const deleteProjectAction = async (
   if (!session) {
     return { error: true, message: "Unauthorized" };
   }
-  try {
-    const hasPermission = await auth.api.hasPermission({
-      headers: await headers(),
-      body: {
-        permissions: {
-          project: ["delete"],
-        },
-      },
-    });
+  const permission = await checkPermission({
+    permissions: {
+      project: ["delete", "create"],
+    },
+    errorMessage: "You are not authorized to delete this project",
+  });
 
-    if (hasPermission.success === false) {
-      return {
-        error: true,
-        message: "You are not authorized to delete this project",
-      };
-    }
-  } catch (error) {
-    if (error instanceof APIError) {
-      return { error: true, message: error.message };
-    }
-    return { error: true, message: "An unknown error occurred" };
+  if (permission.error) {
+    return permission;
   }
 
   try {

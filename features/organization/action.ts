@@ -1,5 +1,6 @@
 "use server";
 import { auth } from "@/lib/auth";
+import { checkPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
 import { APIError } from "better-auth";
@@ -170,27 +171,15 @@ export const addMemberAction = async (formData: FormData) => {
   if (!session) {
     return { error: true, message: "Unauthorized" };
   }
-  try {
-    const hasPermission = await auth.api.hasPermission({
-      headers: await headers(),
-      body: {
-        permissions: {
-          member: ["create"],
-        },
-      },
-    });
 
-    if (hasPermission.success === false) {
-      return {
-        error: true,
-        message: "You are not authorized to add a member to this organization",
-      };
-    }
-  } catch (error) {
-    if (error instanceof APIError) {
-      return { error: true, message: error.message };
-    }
-    return { error: true, message: "An unknown error occurred" };
+  const permission = await checkPermission({
+    permissions: {
+      member: ["create"],
+    },
+    errorMessage: "You are not authorized to add a member to this organization",
+  });
+  if (permission.error) {
+    return permission;
   }
 
   const userExists = await db.query.user.findFirst({
