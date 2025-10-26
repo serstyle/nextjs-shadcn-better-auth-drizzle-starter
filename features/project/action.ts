@@ -96,17 +96,16 @@ export const deleteProjectAction = async (
     return { error: true, message: "Unauthorized" };
   }
   try {
-    const userInOrganization = await auth.api.listMembers({
-      query: {
-        organizationId: organizationId,
-        filterField: "userId",
-        filterOperator: "eq",
-        filterValue: session.user.id,
-      },
+    const hasPermission = await auth.api.hasPermission({
       headers: await headers(),
+      body: {
+        permissions: {
+          project: ["delete"],
+        },
+      },
     });
 
-    if (userInOrganization.total === 0) {
+    if (hasPermission.success === false) {
       return {
         error: true,
         message: "You are not authorized to delete this project",

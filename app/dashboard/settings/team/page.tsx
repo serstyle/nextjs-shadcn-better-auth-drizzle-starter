@@ -25,6 +25,9 @@ export default async function Page() {
     redirect("/login");
   }
   const organization = await getCurrentOrganization();
+  const { role } = await auth.api.getActiveMemberRole({
+    headers: await headers(),
+  });
 
   return (
     <>
@@ -58,7 +61,7 @@ export default async function Page() {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <DataTable columns={columns} data={organization.members} />
-        <AddMember />
+        {(role === "owner" || role === "admin") && <AddMember />}
       </div>
     </>
   );

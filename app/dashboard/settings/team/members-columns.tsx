@@ -25,6 +25,18 @@ export const columns: ColumnDef<Member>[] = [
     header: "Email",
   },
   {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => {
+      return (
+        <div>
+          {row.original.role.charAt(0).toUpperCase() +
+            row.original.role.slice(1)}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "createdAt",
     header: "Joined At",
     cell: ({ row }) => {

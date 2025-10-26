@@ -34,7 +34,7 @@ const generateSlug = (name: string) => {
 };
 
 export const createOrganizationAction = async (
-  _prevState: { error: object | string },
+  _prevState: { error: boolean; message: string | object },
   formData: FormData,
 ) => {
   const validatedFields = schema.safeParse({
@@ -42,7 +42,10 @@ export const createOrganizationAction = async (
     description: formData.get("description"),
   });
   if (!validatedFields.success) {
-    return { error: validatedFields.error.flatten().fieldErrors };
+    return {
+      error: true,
+      message: validatedFields.error.flatten().fieldErrors,
+    };
   }
 
   const session = await auth.api.getSession({
@@ -50,7 +53,7 @@ export const createOrganizationAction = async (
   });
 
   if (!session) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
   }
 
   try {
@@ -66,7 +69,7 @@ export const createOrganizationAction = async (
     });
 
     if (!organization) {
-      return { error: "Failed to create organization" };
+      return { error: true, message: "Failed to create organization" };
     }
 
     const data = await auth.api.setActiveOrganization({
@@ -77,13 +80,16 @@ export const createOrganizationAction = async (
     });
 
     if (!data) {
-      return { error: "Failed to set active organization" };
+      return { error: true, message: "Failed to set active organization" };
     }
   } catch (error) {
     if (error instanceof APIError) {
-      return { error: error.message || "An unknown error occurred" };
+      return {
+        error: true,
+        message: error.message || "An unknown error occurred",
+      };
     }
-    return { error: "An unknown error occurred" };
+    return { error: true, message: "An unknown error occurred" };
   }
 
   redirect(`/dashboard`);
@@ -151,7 +157,10 @@ export const addMemberAction = async (formData: FormData) => {
       memberEmail: formData.get("memberEmail"),
     });
   if (!validatedFields.success) {
-    return { error: validatedFields.error.flatten().fieldErrors };
+    return {
+      error: true,
+      message: validatedFields.error.flatten().fieldErrors,
+    };
   }
   const memberEmail = validatedFields.data.memberEmail;
   const session = await auth.api.getSession({
@@ -159,14 +168,36 @@ export const addMemberAction = async (formData: FormData) => {
   });
 
   if (!session) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
+  }
+  try {
+    const hasPermission = await auth.api.hasPermission({
+      headers: await headers(),
+      body: {
+        permissions: {
+          member: ["create"],
+        },
+      },
+    });
+
+    if (hasPermission.success === false) {
+      return {
+        error: true,
+        message: "You are not authorized to add a member to this organization",
+      };
+    }
+  } catch (error) {
+    if (error instanceof APIError) {
+      return { error: true, message: error.message };
+    }
+    return { error: true, message: "An unknown error occurred" };
   }
 
   const userExists = await db.query.user.findFirst({
     where: eq(user.email, memberEmail),
   });
   if (!userExists) {
-    return { error: "User not found" };
+    return { error: true, message: "User not found" };
   }
   try {
     await auth.api.addMember({
@@ -179,9 +210,9 @@ export const addMemberAction = async (formData: FormData) => {
     refresh();
   } catch (error) {
     if (error instanceof Error) {
-      return { error: error.message };
+      return { error: true, message: error.message };
     }
-    return { error: "An unknown error occurred" };
+    return { error: true, message: "An unknown error occurred" };
   }
-  return { success: true, error: "" };
+  return { error: false, message: "Member added successfully" };
 };

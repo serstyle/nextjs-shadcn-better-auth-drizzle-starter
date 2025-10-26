@@ -29,9 +29,6 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { projects } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
 import { getProjectById } from "@/features/project/db/queries";
 
 export default async function Page({

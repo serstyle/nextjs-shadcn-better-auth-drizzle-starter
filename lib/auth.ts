@@ -7,6 +7,7 @@ import { sendEmail } from "./email";
 import { organization } from "better-auth/plugins";
 import { desc, eq } from "drizzle-orm";
 import { member } from "@/auth-schema";
+import { ac, admin, owner, member as memberRole } from "./permissions";
 
 export const auth = betterAuth({
   appName: "Next JS Better Auth Drizzle Postgres",
@@ -63,5 +64,15 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [nextCookies(), organization()],
+  plugins: [
+    nextCookies(),
+    organization({
+      ac: ac,
+      roles: {
+        member: memberRole,
+        admin: admin,
+        owner: owner,
+      },
+    }),
+  ],
 });

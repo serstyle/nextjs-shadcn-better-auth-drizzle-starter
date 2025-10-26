@@ -6,24 +6,25 @@ export const useCreateOrganization = () => {
   const [state, formAction, pending] = useActionState(
     createOrganizationAction,
     {
-      error: "",
+      error: false,
+      message: "",
     },
   );
 
   useEffect(() => {
     if (state.error) {
-      let errorMessage = JSON.stringify(state.error);
-      if (typeof state.error === "string") {
-        errorMessage = state.error;
+      let errorMessage = JSON.stringify(state.message);
+      if (typeof state.message === "string") {
+        errorMessage = state.message;
       }
-      if (typeof state.error === "object") {
-        errorMessage = Object.values(state.error)
+      if (typeof state.message === "object") {
+        errorMessage = Object.values(state.message)
           .map((error: string[]) => error.join(", "))
           .join(", ");
       }
       toast.error(errorMessage);
     }
-  }, [state.error]);
+  }, [state]);
 
   return { state, formAction, pending };
 };

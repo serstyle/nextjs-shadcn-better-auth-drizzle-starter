@@ -23,30 +23,36 @@ import {
 
 export function AddMember({ children }: { children?: React.ReactNode }) {
   const [state, formAction, pending] = useActionState(
-    (_: { error: object | string }, formData: FormData) =>
+    (_: { error: boolean; message: string | object }, formData: FormData) =>
       addMemberAction(formData),
     {
-      error: "",
+      error: false,
+      message: "",
     },
   );
 
   useEffect(() => {
     if (state.error && !pending) {
-      let errorMessage = JSON.stringify(state.error);
-      if (typeof state.error === "string") {
-        errorMessage = state.error;
+      let errorMessage = JSON.stringify(state.message);
+      if (typeof state.message === "string") {
+        errorMessage = state.message;
       }
-      if (typeof state.error === "object") {
-        errorMessage = Object.values(state.error)
+      if (typeof state.message === "object") {
+        errorMessage = Object.values(state.message)
           .map((error: string[]) => error.join(", "))
           .join(", ");
       }
       toast.error(errorMessage);
     }
-    if (state.success && !pending) {
-      toast.success("Member added successfully");
+    if (
+      !state.error &&
+      state.message &&
+      typeof state.message === "string" &&
+      !pending
+    ) {
+      toast.success(state.message);
     }
-  }, [state.error, state.success, pending]);
+  }, [state.error, state.message, pending]);
 
   return (
     <DialogFormWithTrigger
