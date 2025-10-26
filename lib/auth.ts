@@ -5,8 +5,12 @@ import { nextCookies } from "better-auth/next-js";
 import { sendEmail } from "./email";
 
 import { organization } from "better-auth/plugins";
+import { desc, eq } from "drizzle-orm";
+import { member } from "@/auth-schema";
+import { ac, admin, owner, member as memberRole } from "./permissions";
 
 export const auth = betterAuth({
+  appName: "Next JS Better Auth Drizzle Postgres",
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL!],
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -41,5 +45,34 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  plugins: [nextCookies(), organization()],
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const membership = await db.query.member.findFirst({
+            where: eq(member.userId, session.userId),
+            orderBy: desc(member.createdAt),
+            columns: { organizationId: true },
+          });
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: membership?.organizationId,
+            },
+          };
+        },
+      },
+    },
+  },
+  plugins: [
+    nextCookies(),
+    organization({
+      ac: ac,
+      roles: {
+        member: memberRole,
+        admin: admin,
+        owner: owner,
+      },
+    }),
+  ],
 });

@@ -5,7 +5,7 @@ import { Home, Settings2 } from "lucide-react";
 
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
-import { TenantSwitcher } from "@/components/team-switcher";
+import { OrganizationSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -14,35 +14,35 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { InferSelectModel } from "drizzle-orm";
-import { projects, tenants } from "@/lib/db/schema";
+import { projects } from "@/lib/db/schema";
 import { NavMain } from "./nav-main";
 import { usePathname } from "next/navigation";
+import { Organization } from "better-auth/plugins";
 
-type Tenant = InferSelectModel<typeof tenants>;
 type Project = InferSelectModel<typeof projects>;
 export function AppSidebar({
-  tenants,
-  activeTenant,
+  organizations,
+  activeOrganization,
   projects,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  tenants: Tenant[];
-  activeTenant: Tenant;
+  organizations: Organization[];
+  activeOrganization: Organization;
   projects: Project[];
 }) {
   const pathname = usePathname();
-  const isDashboardActive = pathname === `/dashboard/${activeTenant.id}`;
+  const isDashboardActive = pathname === `/dashboard`;
 
   const navMain = [
     {
       title: "Dashboard",
-      url: `/dashboard/${activeTenant.id}`,
+      url: `/dashboard`,
       icon: Home,
       isActive: isDashboardActive,
       items: [
         {
           title: "Overview",
-          url: `/dashboard/${activeTenant.id}`,
+          url: `/dashboard`,
           isActive: isDashboardActive,
         },
       ],
@@ -51,24 +51,22 @@ export function AppSidebar({
       title: "Settings",
       url: "#",
       icon: Settings2,
-      isActive: pathname.startsWith(`/dashboard/${activeTenant.id}/settings`),
+      isActive: pathname.startsWith(`/dashboard/settings`),
       items: [
         {
           title: "General",
-          url: `/dashboard/${activeTenant.id}/settings/general`,
-          isActive:
-            pathname === `/dashboard/${activeTenant.id}/settings/general`,
+          url: `/dashboard/settings/general`,
+          isActive: pathname === `/dashboard/settings/general`,
         },
         {
           title: "Team",
-          url: `/dashboard/${activeTenant.id}/settings/team`,
-          isActive: pathname === `/dashboard/${activeTenant.id}/settings/team`,
+          url: `/dashboard/settings/team`,
+          isActive: pathname === `/dashboard/settings/team`,
         },
         {
           title: "Billing",
-          url: `/dashboard/${activeTenant.id}/settings/billing`,
-          isActive:
-            pathname === `/dashboard/${activeTenant.id}/settings/billing`,
+          url: `/dashboard/settings/billing`,
+          isActive: pathname === `/dashboard/settings/billing`,
         },
       ],
     },
@@ -77,14 +75,20 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TenantSwitcher tenants={tenants} activeTenant={activeTenant} />
+        <OrganizationSwitcher
+          organizations={organizations}
+          activeOrganization={activeOrganization}
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavProjects projects={projects} activeTenantId={activeTenant.id} />
+        <NavProjects
+          projects={projects}
+          activeOrganizationId={activeOrganization.id}
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser activeTenantId={activeTenant.id} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

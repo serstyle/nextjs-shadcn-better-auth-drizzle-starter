@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { ChevronsUpDown, GalleryVerticalEnd, Plus } from "lucide-react";
 
 import {
@@ -18,21 +17,34 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { tenants } from "@/lib/db/schema";
-import { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
-import { CreateTenant } from "@/features/tenant/create-tenant";
+import { CreateOrganization } from "@/features/organization/create-organization";
+import { Organization } from "better-auth/plugins";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { BetterAuthActionButton } from "./auth/better-auth-action-button";
 
-type Tenant = InferSelectModel<typeof tenants>;
-export function TenantSwitcher({
-  tenants,
-  activeTenant,
+export function OrganizationSwitcher({
+  organizations,
+  activeOrganization,
 }: {
-  tenants: Tenant[];
-  activeTenant: Tenant;
+  organizations: Organization[];
+  activeOrganization: Organization;
 }) {
   const { isMobile } = useSidebar();
-
+  const router = useRouter();
+  const handleChangeOrganization = async (organizationId: string) => {
+    return await authClient.organization.setActive(
+      {
+        organizationId,
+      },
+      {
+        onSuccess: () => {
+          router.refresh();
+        },
+      },
+    );
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -47,10 +59,10 @@ export function TenantSwitcher({
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {activeTenant.name}
+                  {activeOrganization.name}
                 </span>
                 <span className="truncate text-xs">
-                  {activeTenant.description}
+                  {JSON.parse(activeOrganization.metadata).description}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -63,31 +75,43 @@ export function TenantSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Tenants
+              Organizations
             </DropdownMenuLabel>
-            {tenants.map((tenant, index) => (
-              <DropdownMenuItem key={tenant.id} asChild className="gap-2 p-2">
-                <Link href={`/dashboard/${tenant.id}`}>
-                  <div className="flex size-6 items-center justify-center rounded-md border">
-                    <GalleryVerticalEnd className="size-3.5 shrink-0" />
+            {organizations.map((organization, index) => (
+              <DropdownMenuItem
+                key={organization.id}
+                asChild
+                className="gap-2 p-2"
+              >
+                <BetterAuthActionButton
+                  action={() => handleChangeOrganization(organization.id)}
+                  variant="ghost"
+                  className="flex w-full items-center justify-between"
+                  successMessage={`Switching to ${organization.name}`}
+                >
+                  <div className="flex w-full items-center gap-2">
+                    <div className="flex size-6 items-center justify-center rounded-md border">
+                      <GalleryVerticalEnd className="size-3.5 shrink-0" />
+                    </div>
+                    {organization.name}
                   </div>
-                  {tenant.name}
+
                   <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-                </Link>
+                </BetterAuthActionButton>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <CreateTenant>
+              <CreateOrganization>
                 <div className="flex cursor-default items-center gap-2 p-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                   <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                     <Plus className="size-4" />
                   </div>
                   <div className="font-medium text-muted-foreground">
-                    Add tenant
+                    Add organization
                   </div>
                 </div>
-              </CreateTenant>
+              </CreateOrganization>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

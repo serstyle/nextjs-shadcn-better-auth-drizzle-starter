@@ -8,25 +8,20 @@ import {
 } from "@/components/ui/breadcrumb";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
-import { UpdateTenant } from "@/features/tenant/update-tenant";
+import { UpdateOrganization } from "@/features/organization/update-organization";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ tenantId: string }>;
-}) {
-  const { tenantId } = await params;
+import { getCurrentOrganization } from "@/features/organization/auth/queries";
+export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) {
     redirect("/login");
   }
-  const tenant = await getTenantByIdWithProjects(tenantId, session.user.id);
+  const organization = await getCurrentOrganization();
 
   return (
     <>
@@ -40,15 +35,13 @@ export default async function Page({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/${tenantId}`}>
-                  {tenant.name}
+                <BreadcrumbLink href={`/dashboard`}>
+                  {organization.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  href={`/dashboard/${tenantId}/settings/general`}
-                >
+                <BreadcrumbLink href={`/dashboard/settings/general`}>
                   Settings
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -61,7 +54,7 @@ export default async function Page({
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <UpdateTenant tenant={tenant} />
+        <UpdateOrganization organization={organization} />
       </div>
     </>
   );

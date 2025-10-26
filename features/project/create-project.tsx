@@ -15,30 +15,31 @@ import { Label } from "@/components/ui/label";
 import { DialogFormWithTrigger } from "@/components/dialog-form-with-trigger";
 
 export function CreateProject({
-  tenantId,
+  organizationId,
   children,
 }: {
-  tenantId: string;
+  organizationId: string;
   children?: React.ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(createProjectAction, {
-    error: "",
+    error: false,
+    message: "",
   });
 
   useEffect(() => {
     if (state.error) {
-      let errorMessage = JSON.stringify(state.error);
-      if (typeof state.error === "string") {
-        errorMessage = state.error;
+      let errorMessage = JSON.stringify(state.message);
+      if (typeof state.message === "string") {
+        errorMessage = state.message;
       }
-      if (typeof state.error === "object") {
-        errorMessage = Object.values(state.error)
+      if (typeof state.message === "object") {
+        errorMessage = Object.values(state.message)
           .map((error: string[]) => error.join(", "))
           .join(", ");
       }
       toast.error(errorMessage);
     }
-  }, [state.error]);
+  }, [state.message, state.error]);
 
   return (
     <DialogFormWithTrigger
@@ -50,11 +51,11 @@ export function CreateProject({
       <DialogHeader>
         <DialogTitle>Create a new project</DialogTitle>
         <DialogDescription>
-          Create a new project for your tenant
+          Create a new project for your organization
         </DialogDescription>
       </DialogHeader>
       <>
-        <input type="hidden" name="tenantId" value={tenantId} />
+        <input type="hidden" name="organizationId" value={organizationId} />
         <div className="grid gap-3">
           <Label htmlFor="name-1">Name</Label>
           <Input id="name-1" name="name" />

@@ -21,10 +21,6 @@ export const user = pgTable("user", {
     .notNull(),
 });
 
-export const usersRelations = relations(user, ({ many }) => ({
-  tenants: many(tenantsUsers),
-}));
-
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
@@ -38,6 +34,7 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
 });
 
 export const account = pgTable("account", {
@@ -72,58 +69,52 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-export const tenants = pgTable("tenants", {
-  id: uuid("id").defaultRandom().primaryKey().notNull(),
+export const organization = pgTable("organization", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
+  slug: text("slug").notNull().unique(),
+  logo: text("logo"),
+  createdAt: timestamp("created_at").notNull(),
+  metadata: text("metadata"),
 });
 
-export const tenantsRelations = relations(tenants, ({ many }) => ({
-  users: many(tenantsUsers),
+export const member = pgTable("member", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").default("member").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").default("pending").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const organizationsRelations = relations(organization, ({ many }) => ({
   projects: many(projects),
-}));
-
-export const tenantsUsers = pgTable(
-  "tenants_users",
-  {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
-    tenantId: uuid("tenant_id")
-      .notNull()
-      .references(() => tenants.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex("tenant_user_unique").on(table.tenantId, table.userId),
-  ],
-);
-
-export const tenantsUsersRelations = relations(tenantsUsers, ({ one }) => ({
-  tenant: one(tenants, {
-    fields: [tenantsUsers.tenantId],
-    references: [tenants.id],
-  }),
-  user: one(user, { fields: [tenantsUsers.userId], references: [user.id] }),
 }));
 
 export const projects = pgTable("projects", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  tenantId: uuid("tenant_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => tenants.id, { onDelete: "cascade" }),
+    .references(() => organization.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -132,8 +123,8 @@ export const projects = pgTable("projects", {
 });
 
 export const projectsRelations = relations(projects, ({ one }) => ({
-  tenant: one(tenants, {
-    fields: [projects.tenantId],
-    references: [tenants.id],
+  organization: one(organization, {
+    fields: [projects.organizationId],
+    references: [organization.id],
   }),
 }));

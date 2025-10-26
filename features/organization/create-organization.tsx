@@ -10,21 +10,26 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { DialogFormWithTrigger } from "@/components/dialog-form-with-trigger";
-import { useCreateTenant } from "./hooks";
+import { useCreateOrganization } from "./hooks";
 import { ArrowRightIcon, Loader2Icon } from "lucide-react";
 
-export function CreateTenant({ children }: { children?: React.ReactNode }) {
-  const { formAction, pending } = useCreateTenant();
+export function CreateOrganization({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
+  const { formAction, pending } = useCreateOrganization();
+
   return (
     <DialogFormWithTrigger
       formAction={formAction}
       trigger={
-        children || <Button variant="outline">Create a new tenant</Button>
+        children || <Button variant="outline">Create a new organization</Button>
       }
     >
       <DialogHeader>
-        <DialogTitle>Create a new tenant</DialogTitle>
-        <DialogDescription>Create a new tenant</DialogDescription>
+        <DialogTitle>Create a new organization</DialogTitle>
+        <DialogDescription>Create a new organization</DialogDescription>
       </DialogHeader>
       <>
         <div className="grid gap-3">
@@ -42,21 +47,21 @@ export function CreateTenant({ children }: { children?: React.ReactNode }) {
           <Button variant="outline">Cancel</Button>
         </DialogClose>
         <Button type="submit" disabled={pending}>
-          {pending ? "Creating tenant..." : "Create Tenant"}
+          {pending ? "Creating organization..." : "Create Organization"}
         </Button>
       </DialogFooter>
     </DialogFormWithTrigger>
   );
 }
 
-export function CreateTenantForm() {
-  const { formAction, pending } = useCreateTenant();
+export function CreateOrganizationForm() {
+  const { formAction, pending } = useCreateOrganization();
   return (
     <form action={formAction} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name-1" className="text-sm font-medium">
-            Workspace Name
+            Organization Name
           </Label>
           <Input
             id="name-1"
@@ -66,7 +71,7 @@ export function CreateTenantForm() {
             required
           />
           <p className="text-xs text-muted-foreground">
-            Choose a name for your workspace
+            Choose a name for your organization
           </p>
         </div>
         <div className="space-y-2">
@@ -76,7 +81,7 @@ export function CreateTenantForm() {
           <Input
             id="description-1"
             name="description"
-            placeholder="What's this workspace for?"
+            placeholder="What's this organization for?"
             className="h-11"
           />
           <p className="text-xs text-muted-foreground">
@@ -93,11 +98,11 @@ export function CreateTenantForm() {
         {pending ? (
           <>
             <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-            Creating workspace...
+            Creating organization...
           </>
         ) : (
           <>
-            Create Workspace
+            Create Organization
             <ArrowRightIcon className="ml-2" />
           </>
         )}

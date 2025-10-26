@@ -8,24 +8,19 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { getTenantByIdWithProjects } from "@/features/tenant/db/queries";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getCurrentOrganization } from "@/features/organization/auth/queries";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ tenantId: string }>;
-}) {
-  const { tenantId } = await params;
+export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) {
     redirect("/login");
   }
-  const tenant = await getTenantByIdWithProjects(tenantId, session.user.id);
+  const organization = await getCurrentOrganization();
 
   return (
     <>
@@ -39,15 +34,13 @@ export default async function Page({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/${tenantId}`}>
-                  {tenant.name}
+                <BreadcrumbLink href={`/dashboard`}>
+                  {organization.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  href={`/dashboard/${tenantId}/settings/general`}
-                >
+                <BreadcrumbLink href={`/dashboard/settings/general`}>
                   Settings
                 </BreadcrumbLink>
               </BreadcrumbItem>

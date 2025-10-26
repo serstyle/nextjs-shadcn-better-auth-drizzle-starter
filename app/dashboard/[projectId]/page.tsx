@@ -14,10 +14,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import {
-  getMembersByTenantId,
-  getTenantByIdWithProjects,
-} from "@/features/tenant/db/queries";
+
 import { Separator } from "@/components/ui/separator";
 import { redirect } from "next/navigation";
 import {
@@ -32,27 +29,30 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { getProjectById } from "@/features/project/db/queries";
 
 export default async function Page({
   params,
 }: {
-  params: Promise<{ tenantId: string; projectId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { tenantId, projectId } = await params;
+  const { projectId } = await params;
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) {
     redirect("/login");
   }
-  const [tenant, members] = await Promise.all([
-    getTenantByIdWithProjects(tenantId, session.user.id),
-    getMembersByTenantId(tenantId),
-  ]);
 
-  const project = tenant.projects.find((p) => p.id === projectId);
-  if (!project) {
-    redirect(`/dashboard/${tenantId}`);
+  const activeOrganizationId = session.session.activeOrganizationId;
+  if (!activeOrganizationId) {
+    redirect(`/onboarding`);
+  }
+
+  const projectQuery = await getProjectById(projectId, activeOrganizationId);
+
+  if (!projectQuery) {
+    redirect(`/dashboard`);
   }
 
   return (
@@ -67,13 +67,13 @@ export default async function Page({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/dashboard/${tenantId}`}>
-                  {tenant.name}
+                <BreadcrumbLink href={`/dashboard`}>
+                  {projectQuery.organization.name}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>{project.name}</BreadcrumbPage>
+                <BreadcrumbPage>{projectQuery.name}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -88,11 +88,11 @@ export default async function Page({
             </div>
             <div className="flex-1 space-y-1">
               <h1 className="text-3xl font-bold tracking-tight">
-                {project.name}
+                {projectQuery.name}
               </h1>
-              {project.description && (
+              {projectQuery.description && (
                 <p className="text-lg text-muted-foreground">
-                  {project.description}
+                  {projectQuery.description}
                 </p>
               )}
             </div>
@@ -123,7 +123,8 @@ export default async function Page({
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{members.length}</div>
+              {/* <div className="text-2xl font-bold">{members.length}</div> */}
+              <div className="text-2xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">team members</p>
             </CardContent>
           </Card>
@@ -144,13 +145,13 @@ export default async function Page({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {new Date(project.createdAt).toLocaleDateString("en-US", {
+                {new Date(projectQuery.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {new Date(project.createdAt).toLocaleDateString("en-US", {
+                {new Date(projectQuery.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                 })}
               </p>
@@ -189,9 +190,7 @@ export default async function Page({
             </CardHeader>
             <CardContent>
               <Button asChild variant="secondary" size="sm" className="w-full">
-                <Link href={`/dashboard/${tenantId}/settings/team`}>
-                  Invite Members
-                </Link>
+                <Link href={`/dashboard/settings/team`}>Invite Members</Link>
               </Button>
             </CardContent>
           </Card>

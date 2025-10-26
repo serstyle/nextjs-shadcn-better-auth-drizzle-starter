@@ -1,9 +1,10 @@
 "use server";
 import { auth } from "@/lib/auth";
+import { checkPermission } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { projects, tenantsUsers } from "@/lib/db/schema";
+import { projects } from "@/lib/db/schema";
+import { APIError } from "better-auth";
 import { eq } from "drizzle-orm";
-import { and } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,60 +17,77 @@ const schema = z.object({
   description: z.string({
     error: "Invalid Description",
   }),
-  tenantId: z.string({
-    error: "Invalid Tenant ID",
+  organizationId: z.string({
+    error: "Invalid Organization ID",
   }),
 });
 
 export const createProjectAction = async (
-  _prevState: { error: string | object },
+  _prevState: { error: boolean; message: string | object },
   formData: FormData,
 ) => {
   const validatedFields = schema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
-    tenantId: formData.get("tenantId"),
+    organizationId: formData.get("organizationId"),
   });
   if (!validatedFields.success) {
-    return { error: validatedFields.error.flatten().fieldErrors };
+    return {
+      error: true,
+      message: validatedFields.error.flatten().fieldErrors,
+    };
   }
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
   if (!session) {
-    return { error: "Unauthorized" };
+    return { error: true, message: "Unauthorized" };
   }
-  const userInTenant = await db.query.tenantsUsers.findFirst({
-    where: and(
-      eq(tenantsUsers.userId, session.user.id),
-      eq(tenantsUsers.tenantId, validatedFields.data.tenantId),
-    ),
-  });
+  try {
+    const userInOrganization = await auth.api.listMembers({
+      query: {
+        organizationId: validatedFields.data.organizationId,
+        filterField: "userId",
+        filterOperator: "eq",
+        filterValue: session.user.id,
+      },
+      headers: await headers(),
+    });
 
-  if (!userInTenant) {
-    return {
-      error: "You are not authorized to create a project in this tenant",
-    };
+    if (userInOrganization.total === 0) {
+      return {
+        error: true,
+        message:
+          "You are not authorized to create a project in this organization",
+      };
+    }
+  } catch (error) {
+    if (error instanceof APIError) {
+      return { error: true, message: error.message };
+    }
+    return { error: true, message: "An unknown error occurred" };
   }
+
   let project;
   try {
     [project] = await db
       .insert(projects)
       .values(validatedFields.data)
       .returning();
-    updateTag(`tenant:${validatedFields.data.tenantId}`);
+
+    updateTag(`organization:${validatedFields.data.organizationId}:projects`);
   } catch (error) {
     if (error instanceof Error) {
-      return { error: error.message };
+      return { error: true, message: error.message };
     }
-    return { error: "An unknown error occurred" };
+    return { error: true, message: "An unknown error occurred" };
   }
-  redirect(`/dashboard/${validatedFields.data.tenantId}/${project.id}`);
+  redirect(`/dashboard/${project.id}`);
 };
 
 export const deleteProjectAction = async (
-  tenantId: string,
+  organizationId: string,
   projectId: string,
 ) => {
   const session = await auth.api.getSession({
@@ -78,32 +96,22 @@ export const deleteProjectAction = async (
   if (!session) {
     return { error: true, message: "Unauthorized" };
   }
-  const userInTenant = await db.query.tenantsUsers
-    .findFirst({
-      where: and(
-        eq(tenantsUsers.userId, session.user.id),
-        eq(tenantsUsers.tenantId, tenantId),
-      ),
-      with: {
-        tenant: {
-          with: {
-            projects: {
-              where: eq(projects.id, projectId),
-            },
-          },
-        },
-      },
-    })
-    .catch(() => {
-      return null;
-    });
-  if (!userInTenant?.tenant?.projects.length) {
-    return { error: true, message: "Project not found" };
+  const permission = await checkPermission({
+    permissions: {
+      project: ["delete", "create"],
+    },
+    errorMessage: "You are not authorized to delete this project",
+  });
+
+  if (permission.error) {
+    return permission;
   }
+
   try {
     await db.delete(projects).where(eq(projects.id, projectId));
 
-    updateTag(`tenant:${tenantId}`);
+    updateTag(`project:${projectId}`);
+    updateTag(`organization:${organizationId}:projects`);
 
     return { error: false, message: "Project deleted successfully" };
   } catch (error) {

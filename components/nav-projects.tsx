@@ -31,10 +31,10 @@ type Project = InferSelectModel<typeof projects>;
 
 export function NavProjects({
   projects,
-  activeTenantId,
+  activeOrganizationId,
 }: {
   projects: Project[];
-  activeTenantId: string;
+  activeOrganizationId: string;
 }) {
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -44,7 +44,7 @@ export function NavProjects({
         </span>
       </SidebarGroupLabel>
       <SidebarGroupAction>
-        <CreateProject tenantId={activeTenantId}>
+        <CreateProject organizationId={activeOrganizationId}>
           <Plus className="size-4 cursor-pointer" />
         </CreateProject>
       </SidebarGroupAction>
@@ -64,7 +64,7 @@ export function NavProjects({
         <SidebarMenuItem>
           {projects.length <= 3 ? (
             <SidebarMenuButton className="text-sidebar-foreground/70">
-              <CreateProject tenantId={activeTenantId}>
+              <CreateProject organizationId={activeOrganizationId}>
                 <div className="flex items-center gap-2">
                   <Plus className="size-4 cursor-pointer" />
                   <span>Create Project</span>
@@ -74,7 +74,7 @@ export function NavProjects({
           ) : (
             <SidebarMenuButton className="text-sidebar-foreground/70">
               <MoreHorizontal className="text-sidebar-foreground/70" />
-              <Link className="w-full" href={`/dashboard/${activeTenantId}`}>
+              <Link className="w-full" href={`/dashboard`}>
                 <span>More</span>
               </Link>
             </SidebarMenuButton>
@@ -93,7 +93,7 @@ export function NavProjectsItem({ project }: { project: Project }) {
   return (
     <SidebarMenuItem key={project.name}>
       <SidebarMenuButton isActive={projectId === project.id} asChild>
-        <Link href={`/dashboard/${project.tenantId}/${project.id}`}>
+        <Link href={`/dashboard/${project.id}`}>
           <Folder className="text-muted-foreground" />
           <span>{project.name}</span>
         </Link>
@@ -111,7 +111,7 @@ export function NavProjectsItem({ project }: { project: Project }) {
           align={isMobile ? "end" : "start"}
         >
           <DropdownMenuItem asChild>
-            <Link href={`/dashboard/${project.tenantId}/${project.id}`}>
+            <Link href={`/dashboard/${project.id}`}>
               <Folder className="text-muted-foreground" />
               <span>View Project</span>
             </Link>
@@ -121,7 +121,7 @@ export function NavProjectsItem({ project }: { project: Project }) {
             <ActionButton
               action={deleteProjectAction.bind(
                 null,
-                project.tenantId,
+                project.organizationId,
                 project.id,
               )}
               requireAreYouSure
