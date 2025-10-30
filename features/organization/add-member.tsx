@@ -79,6 +79,7 @@ export function AddMember({ children }: { children?: React.ReactNode }) {
             <SelectContent>
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="member">Member</SelectItem>
+              <SelectItem value="sales">Sales</SelectItem>
             </SelectContent>
           </Select>
         </div>

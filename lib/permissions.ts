@@ -18,6 +18,11 @@ export const member = ac.newRole({
   ...memberAc.statements,
   project: ["create"],
 });
+
+export const sales = ac.newRole({
+  project: ["create"],
+});
+
 export const admin = ac.newRole({
   ...adminAc.statements,
   project: ["create", "update"],
